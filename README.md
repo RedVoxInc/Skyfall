@@ -15,7 +15,7 @@ Using the data from this event, RedPandas is able to produce several products.
 
 ### 1. Download the RedVox Skyfall data
 To begin, download the Skyfall dataset from [the Redvox website](https://redvox.io/#/reports/3f3f). Next to "Additional Products", you will
-a link to download the data. A zip file will start to download.
+find a link to download the data. A zip file will start to download.
 
 Visit [RedVox](https://www.redvoxsound.com/) for more information on infrasound collection with a smartphone.
 
@@ -26,7 +26,7 @@ In a Terminal, use the following command:
 ```shell
 git clone git@github.com:RedVoxInc/Skyfall.git
 ```
-For more details, please check: [Instructions on how to close a GitHub repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository#cloning-a-repository).
+For more details, please check: [Instructions on how to clone a GitHub repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository#cloning-a-repository).
 
 #### 2.2. Requirements
 
