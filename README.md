@@ -34,8 +34,6 @@ To install the necessary requirements:
 ```shell
 pip install -r /path/to/requirements.txt
 ```
-You will mainly need the [RedVox SDK](https://github.com/RedVoxInc/redvox-python-sdk#redvox-python-sdk), [RedPandas](https://github.com/RedVoxInc/redpandas#redpandas) 
-and [Libquantum](https://github.com/RedVoxInc/libquantum#libquantum) libraries.
 
 ### 3. Run the Skyfall example
 #### 3.1. Update the Configuration File
@@ -60,3 +58,9 @@ You may view and run the specific example functions (`skyfall_*.py`) in the `lib
 
 ## Issues
 Please feel free to submit issues and bugs on the GitHub [issue tracker](https://github.com/RedVoxInc/Skyfall/issues).
+
+## Dependecies
+
+You will mainly need the [RedVox SDK](https://github.com/RedVoxInc/redvox-python-sdk#redvox-python-sdk) (redvox >=3.1.0), 
+[RedPandas](https://github.com/RedVoxInc/redpandas#redpandas) (redpandas >= 1.3.3)
+and [Libquantum](https://github.com/RedVoxInc/libquantum#libquantum) (libquantum >= 1.3.0) libraries.
