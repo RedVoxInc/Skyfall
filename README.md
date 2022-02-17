@@ -14,8 +14,8 @@ Using the data from this event, RedPandas is able to produce several products.
 ## Getting started 
 
 ### 1. Download the RedVox Skyfall data
-To begin, download the Skyfall data from [the Redvox website](http://redvox.io/@/3f3f). Under "RedVox Report", you will
-find "Download Report Data" towards the end.
+To begin, download the Skyfall dataset from [the Redvox website](https://redvox.io/#/reports/3f3f). Next to "Additional Products", you will
+a link to download the data. A zip file will start to download.
 
 Visit [RedVox](https://www.redvoxsound.com/) for more information on infrasound collection with a smartphone.
 
