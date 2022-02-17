@@ -4,8 +4,8 @@ from redpandas.redpd_config import RedpdConfig, TFRConfig
 # Absolute path to the skyfall data.
 # SKYFALL_DIR = "path/to/download/data/folder"
 # Example: MacOS directory containing /api900 or /api1000 directories with yyyy/mm/dd and yyyy/mm/dd/hh structure
-SKYFALL_DIR = "/Users/mgarces/Documents/DATA/SDK_DATA/api900_Skyfall_20201027"
-# SKYFALL_DIR = "/Users/meritxell/Desktop/skyfall_dummy_test"
+# SKYFALL_DIR = "/Users/mgarces/UsersDocuments/DATA/SDK_DATA/api900_Skyfall_20201027"
+SKYFALL_DIR = "/Users/meritxell/Desktop/skyfall_dummy_test"
 
 # Build Bounder Data Products: Settings for skyfall_loc_rpd.py
 is_rerun_bounder: bool = True  # If true, rerun and save as parquet
@@ -31,8 +31,7 @@ skyfall_config = RedpdConfig(input_directory=SKYFALL_DIR,
                              event_start_epoch_s=1603806314,
                              duration_s=30 * 60,
                              start_buffer_minutes=3,
-                             end_buffer_minutes=3,
-                             tdr_load_method="datawindow")
+                             end_buffer_minutes=3)
 
 # TFR configuration
 tfr_config = TFRConfig(tfr_type='stft',
@@ -44,5 +43,4 @@ tfr_config = TFRConfig(tfr_type='stft',
                                          'Acc': 18.,
                                          'Gyr': 18.,
                                          'Mag': 18.},
-                       sensor_highpass=True,
-                       tfr_load_method="datawindow")
+                       sensor_highpass=True)

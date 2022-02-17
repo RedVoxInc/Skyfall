@@ -2,14 +2,12 @@
 import matplotlib.pyplot as plt
 
 # RedVox RedPandas and related RedVox modules
-import redpandas.redpd_preprocess as rpd_prep
 import redpandas.redpd_plot.mesh as rpd_plot
 import redpandas.redpd_tfr as rpd_tfr
 from libquantum.plot_templates import plot_time_frequency_reps as pnl
 import lib.skyfall_dw as sf_dw
 
 # Configuration file
-from redpandas.redpd_config import DataLoadMethod
 from skyfall_config_file import skyfall_config, tfr_config
 
 axes = ["X", "Y", "Z"]
@@ -23,7 +21,6 @@ def main():
 
     # Label columns in dataframe
     station_label: str = "station_id"
-    redvox_sdk_version_label: str = 'redvox_sdk_version'
 
     # Audio columns
     audio_data_label: str = "audio_wf"
@@ -70,7 +67,6 @@ def main():
     magnetometer_tfr_time_s_label: str = "magnetometer_tfr_time_s"
 
     # Load data options
-    # RECOMMENDED: tfr_load_method="datawindow" in config file
     df_skyfall_data = sf_dw.dw_main(tfr_config.tfr_load_method)
 
     # PLOTTING
@@ -111,15 +107,6 @@ def main():
                                   wf_panel_2_units="Audio, Norm")
 
         if barometer_data_raw_label and barometer_data_highpass_label and barometer_fs_label in df_skyfall_data.columns:
-            if skyfall_config.tdr_load_method == DataLoadMethod.PARQUET:
-                # Reshape wf columns
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=barometer_data_raw_label,
-                                             col_ndim_label=barometer_data_raw_label + "_ndim")
-
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=barometer_data_highpass_label,
-                                             col_ndim_label=barometer_data_highpass_label + "_ndim")
 
             print('barometer_sample_rate_hz:', df_skyfall_data[barometer_fs_label][station])
             print('barometer_epoch_s_0:', df_skyfall_data[barometer_epoch_s_label][station][0])
@@ -156,14 +143,6 @@ def main():
         # Repeat here
         if accelerometer_data_raw_label and accelerometer_fs_label and accelerometer_data_highpass_label \
                 in df_skyfall_data.columns:
-            if skyfall_config.tdr_load_method == DataLoadMethod.PARQUET:
-                # Reshape wf columns
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=accelerometer_data_raw_label,
-                                             col_ndim_label=accelerometer_data_raw_label + "_ndim")
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=accelerometer_data_highpass_label,
-                                             col_ndim_label=accelerometer_data_highpass_label + "_ndim")
 
             print('accelerometer_sample_rate_hz:', df_skyfall_data[accelerometer_fs_label][station])
             print('accelerometer_epoch_s_0:', df_skyfall_data[accelerometer_epoch_s_label][station][0],
@@ -203,16 +182,6 @@ def main():
         if gyroscope_data_raw_label and gyroscope_fs_label and gyroscope_data_highpass_label \
                 in df_skyfall_data.columns:
 
-            if skyfall_config.tdr_load_method == DataLoadMethod.PARQUET:
-                # Reshape wf columns
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=gyroscope_data_raw_label,
-                                             col_ndim_label=gyroscope_data_raw_label + "_ndim")
-
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=gyroscope_data_highpass_label,
-                                             col_ndim_label=gyroscope_data_highpass_label + "_ndim")
-
             print('gyroscope_sample_rate_hz:', df_skyfall_data[gyroscope_fs_label][station])
             print('gyroscope_epoch_s_0:', df_skyfall_data[gyroscope_epoch_s_label][station][0],
                   df_skyfall_data[gyroscope_epoch_s_label][station][-1])
@@ -249,14 +218,6 @@ def main():
 
         if magnetometer_data_raw_label and magnetometer_fs_label and magnetometer_data_highpass_label \
                 in df_skyfall_data.columns:
-            if skyfall_config.tdr_load_method == DataLoadMethod.PARQUET:
-                # Reshape wf columns
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=magnetometer_data_raw_label,
-                                             col_ndim_label=magnetometer_data_raw_label + "_ndim")
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=magnetometer_data_highpass_label,
-                                             col_ndim_label=magnetometer_data_highpass_label + "_ndim")
 
             print('magnetometer_sample_rate_hz:', df_skyfall_data[magnetometer_fs_label][station])
             print('magnetometer_epoch_s_0:', df_skyfall_data[magnetometer_epoch_s_label][station][0],

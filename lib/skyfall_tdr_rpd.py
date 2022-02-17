@@ -7,6 +7,8 @@ import datetime as dtime
 import redpandas.redpd_preprocess as rpd_prep
 import redpandas.redpd_plot.wiggles as rpd_plot
 import redpandas.redpd_geospatial as rpd_geo
+import redpandas.redpd_datawin as rpd_dw
+import redpandas.redpd_df as rpd_df
 from redpandas.redpd_scales import METERS_TO_KM
 from libquantum.plot_templates import plot_time_frequency_reps as pnl
 
@@ -79,9 +81,14 @@ def main():
     synchronization_offset_delta_label: str = 'synchronization_offset_delta_ms'
     synchronization_number_exchanges_label: str = 'synchronization_number_exchanges'
 
-    # Load data options
-    # RECOMMENDED: tdr_load_method="datawindow" in config file
-    df_skyfall_data = sf_dw.dw_main(skyfall_config.tdr_load_method)
+    # Load RedVox DataWindow
+    print("Constructing RedVox DataWindow...", end=" ")
+    rdvx_data = rpd_dw.dw_from_redpd_config(config=skyfall_config)
+    print(f"Done. RedVox SDK version: {rdvx_data.sdk_version()}")
+
+    # Make RedPandas DataFrame
+    df_skyfall_data = rpd_df.redpd_dataframe(rdvx_data, skyfall_config.sensor_labels)
+    print(f"RedVox SDK version: {df_skyfall_data['redpandas_version'][0]}")
 
     # Start of building plots
     print("\nInitiating time-domain representation of Skyfall:")
@@ -97,15 +104,6 @@ def main():
             event_reference_time_epoch_s = df_skyfall_data[audio_epoch_s_label][station][0]
 
         if barometer_data_raw_label and barometer_data_highpass_label and barometer_fs_label in df_skyfall_data.columns:
-            if skyfall_config.tdr_load_method == DataLoadMethod.PARQUET:
-                # Reshape wf columns
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=barometer_data_raw_label,
-                                             col_ndim_label=barometer_data_raw_label + "_ndim")
-
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=barometer_data_highpass_label,
-                                             col_ndim_label=barometer_data_highpass_label + "_ndim")
 
             print('barometer_sample_rate_hz:', df_skyfall_data[barometer_fs_label][station])
             print('barometer_epoch_s_0:', df_skyfall_data[barometer_epoch_s_label][station][0])
@@ -117,14 +115,6 @@ def main():
         # Repeat here
         if accelerometer_data_raw_label and accelerometer_fs_label and accelerometer_data_highpass_label \
                 in df_skyfall_data.columns:
-            if skyfall_config.tdr_load_method == DataLoadMethod.PARQUET:
-                # Reshape wf columns
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=accelerometer_data_raw_label,
-                                             col_ndim_label=accelerometer_data_raw_label + "_ndim")
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=accelerometer_data_highpass_label,
-                                             col_ndim_label=accelerometer_data_highpass_label + "_ndim")
 
             print('accelerometer_sample_rate_hz:', df_skyfall_data[accelerometer_fs_label][station])
             print('accelerometer_epoch_s_0:',  df_skyfall_data[accelerometer_epoch_s_label][station][0],
@@ -184,16 +174,6 @@ def main():
         if gyroscope_data_raw_label and gyroscope_fs_label and gyroscope_data_highpass_label \
                 in df_skyfall_data.columns:
 
-            if skyfall_config.tdr_load_method == DataLoadMethod.PARQUET:
-                # Reshape wf columns
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=gyroscope_data_raw_label,
-                                             col_ndim_label=gyroscope_data_raw_label + "_ndim")
-
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=gyroscope_data_highpass_label,
-                                             col_ndim_label=gyroscope_data_highpass_label + "_ndim")
-
             print('gyroscope_sample_rate_hz:', df_skyfall_data[gyroscope_fs_label][station])
             print('gyroscope_epoch_s_0:', df_skyfall_data[gyroscope_epoch_s_label][station][0],
                   df_skyfall_data[gyroscope_epoch_s_label][station][-1])
@@ -216,14 +196,6 @@ def main():
 
         if magnetometer_data_raw_label and magnetometer_fs_label and magnetometer_data_highpass_label \
                 in df_skyfall_data.columns:
-            if skyfall_config.tdr_load_method == DataLoadMethod.PARQUET:
-                # Reshape wf columns
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=magnetometer_data_raw_label,
-                                             col_ndim_label=magnetometer_data_raw_label + "_ndim")
-                rpd_prep.df_column_unflatten(df=df_skyfall_data,
-                                             col_wf_label=magnetometer_data_highpass_label,
-                                             col_ndim_label=magnetometer_data_highpass_label + "_ndim")
 
             print('magnetometer_sample_rate_hz:', df_skyfall_data[magnetometer_fs_label][station])
             print('magnetometer_epoch_s_0:', df_skyfall_data[magnetometer_epoch_s_label][station][0],
@@ -282,17 +254,13 @@ def main():
             if location_epoch_s_label and location_altitude_label and barometer_epoch_s_label and \
                     barometer_data_raw_label in df_skyfall_data.columns:
 
-                print(df_skyfall_data.columns)
-
                 plt.figure()
                 time_bar = df_skyfall_data[barometer_epoch_s_label][station] - skyfall_config.event_start_epoch_s
-                # time_bounder = bounder_loc['Epoch_s'] - skyfall_config.event_start_epoch_s
                 time_loc = df_skyfall_data[location_epoch_s_label][station] - skyfall_config.event_start_epoch_s
 
                 ax1 = plt.subplot(211)
                 plt.semilogy(time_bar, df_skyfall_data[barometer_data_raw_label][station][0], 'midnightblue',
                              label='Barometer kPa')
-                # plt.semilogy(time_bounder, bounder_loc['Pres_kPa'], 'g', label='Bounder kPa')
                 plt.ylabel('Pressure, kPa')
                 plt.legend(loc='lower right')
                 plt.xlim([0, 1800])
@@ -304,7 +272,6 @@ def main():
                 plt.plot(time_loc, df_skyfall_data[location_altitude_label][station] * METERS_TO_KM, 'r',
                          label='Location sensor')
                 plt.plot(time_bar, barometer_height_m * METERS_TO_KM, 'midnightblue', label='Barometer Z')
-                # plt.plot(time_bounder, bounder_loc['Alt_m'] * METERS_TO_KM, 'g', label='Bounder Z')
                 plt.ylabel('Height, km')
                 plt.xlabel(f"Time (s) from UTC "
                            f"{dtime.datetime.utcfromtimestamp(skyfall_config.event_start_epoch_s).strftime('%Y-%m-%d %H:%M:%S')}")
