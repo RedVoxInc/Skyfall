@@ -4,19 +4,19 @@ import matplotlib.pyplot as plt
 # RedVox RedPandas and related RedVox modules
 import redpandas.redpd_plot.mesh as rpd_plot
 import redpandas.redpd_tfr as rpd_tfr
+import redpandas.redpd_datawin as rpd_dw
+import redpandas.redpd_df as rpd_df
 from libquantum.plot_templates import plot_time_frequency_reps as pnl
 import lib.skyfall_dw as sf_dw
 
 # Configuration file
 from skyfall_config_file import skyfall_config, tfr_config
 
-axes = ["X", "Y", "Z"]
-
 
 def main():
     """
     RedVox RedPandas time-frequency representation of API900 data. Example: Skyfall.
-    Last updated: 20210909
+    Last updated: 20220216
     """
     print('Let the sky fall...')
 
@@ -67,12 +67,20 @@ def main():
     magnetometer_tfr_frequency_hz_label: str = "magnetometer_tfr_frequency_hz"
     magnetometer_tfr_time_s_label: str = "magnetometer_tfr_time_s"
 
-    # Load data
-    df_skyfall_data = sf_dw.dw_main(tfr_config.tfr_load_method)
+    axes = ["X", "Y", "Z"]  # axes sensors
 
-    # Start TFR plots
-    print("\nInitiating time-frequency representation of Skyfall:")
-    print(f"tfr_type: {tfr_config.tfr_type}, order: {tfr_config.tfr_order_number_N}")
+    # 1. Load RedVox DataWindow
+    print("Constructing RedVox DataWindow...", end=" ")
+    rdvx_data = rpd_dw.dw_from_redpd_config(config=skyfall_config)
+    print(f"Done. RedVox SDK version: {rdvx_data.sdk_version()}")
+
+    # 2. Make RedPandas DataFrame
+    df_skyfall_data = rpd_df.redpd_dataframe(rdvx_data, skyfall_config.sensor_labels)
+    print(f"RedVox SDK version: {df_skyfall_data['redpandas_version'][0]}")
+
+    # 3. Start building TFR plots
+    print("\nInitiating time-frequency representation of Skyfall:"
+          f"\ntfr_type: {tfr_config.tfr_type}, order: {tfr_config.tfr_order_number_N}")
 
     # Get the station id
     station_id_str = df_skyfall_data[station_label][0]

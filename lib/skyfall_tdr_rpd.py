@@ -81,292 +81,271 @@ def main():
     synchronization_offset_delta_label: str = 'synchronization_offset_delta_ms'
     synchronization_number_exchanges_label: str = 'synchronization_number_exchanges'
 
-    # Load RedVox DataWindow
+    # 1. Load RedVox DataWindow
     print("Constructing RedVox DataWindow...", end=" ")
     rdvx_data = rpd_dw.dw_from_redpd_config(config=skyfall_config)
     print(f"Done. RedVox SDK version: {rdvx_data.sdk_version()}")
 
-    # Make RedPandas DataFrame
+    # 2. Make RedPandas DataFrame
     df_skyfall_data = rpd_df.redpd_dataframe(rdvx_data, skyfall_config.sensor_labels)
     print(f"RedVox SDK version: {df_skyfall_data['redpandas_version'][0]}")
 
-    # Start of building plots
+    # 3. Start building TDR plots
     print("\nInitiating time-domain representation of Skyfall:")
-    for station in df_skyfall_data.index:
-        station_id_str = df_skyfall_data[station_label][station]  # Get the station id
 
-        if audio_data_label and audio_fs_label in df_skyfall_data.columns:
+    station_id_str = df_skyfall_data[station_label][0]  # Get the station id
 
-            print('mic_sample_rate_hz: ', df_skyfall_data[audio_fs_label][station])
-            print('mic_epoch_s_0: ', df_skyfall_data[audio_epoch_s_label][station][0])
+    # Microphone sensor stats
+    print(f'\nmic_sample_rate_hz: {df_skyfall_data[audio_fs_label][0]}'
+          f'\nmic_epoch_s_0: {df_skyfall_data[audio_epoch_s_label][0][0]}')
 
-            # Frame to mic start and end and plot
-            event_reference_time_epoch_s = df_skyfall_data[audio_epoch_s_label][station][0]
+    # Frame to mic start and end and plot
+    event_reference_time_epoch_s = df_skyfall_data[audio_epoch_s_label][0][0]
 
-        if barometer_data_raw_label and barometer_data_highpass_label and barometer_fs_label in df_skyfall_data.columns:
+    # Barometer sensor stats
+    print(f'\nbarometer_sample_rate_hz: {df_skyfall_data[barometer_fs_label][0]}'
+          f'\nbarometer_epoch_s_0: {df_skyfall_data[barometer_epoch_s_label][0][0]}')
 
-            print('barometer_sample_rate_hz:', df_skyfall_data[barometer_fs_label][station])
-            print('barometer_epoch_s_0:', df_skyfall_data[barometer_epoch_s_label][station][0])
+    # Calculate height of phone in balloon from pressure sensor
+    barometer_height_m = \
+        rpd_geo.bounder_model_height_from_pressure(df_skyfall_data[barometer_data_raw_label][0][0])
 
-            barometer_height_m = \
-                rpd_geo.bounder_model_height_from_pressure(df_skyfall_data[barometer_data_raw_label][station][0])
-            baro_height_from_bounder_km = barometer_height_m*METERS_TO_KM
+    baro_height_from_bounder_km = barometer_height_m*METERS_TO_KM  # now in km
 
-        # Repeat here
-        if accelerometer_data_raw_label and accelerometer_fs_label and accelerometer_data_highpass_label \
-                in df_skyfall_data.columns:
+    # Acceleration sensor stats
+    print(f'\naccelerometer_sample_rate_hz: {df_skyfall_data[accelerometer_fs_label][0]}'
+          f'\naccelerometer_epoch_s_0: {df_skyfall_data[accelerometer_epoch_s_label][0][0]}')
 
-            print('accelerometer_sample_rate_hz:', df_skyfall_data[accelerometer_fs_label][station])
-            print('accelerometer_epoch_s_0:',  df_skyfall_data[accelerometer_epoch_s_label][station][0],
-                  df_skyfall_data[accelerometer_epoch_s_label][station][-1])
+    # Plot X,Y,Z acceleration raw waveforms
+    pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
+                           wf_panel_2_sig=df_skyfall_data[accelerometer_data_raw_label][0][2],
+                           wf_panel_2_time=df_skyfall_data[accelerometer_epoch_s_label][0],
+                           wf_panel_1_sig=df_skyfall_data[accelerometer_data_raw_label][0][1],
+                           wf_panel_1_time=df_skyfall_data[accelerometer_epoch_s_label][0],
+                           wf_panel_0_sig=df_skyfall_data[accelerometer_data_raw_label][0][0],
+                           wf_panel_0_time=df_skyfall_data[accelerometer_epoch_s_label][0],
+                           start_time_epoch=event_reference_time_epoch_s,
+                           wf_panel_2_units="Acc Z, m/$s^2$",
+                           wf_panel_1_units="Acc Y, m/$s^2$",
+                           wf_panel_0_units="Acc X, m/$s^2$",
+                           figure_title=skyfall_config.event_name + ": Accelerometer raw",
+                           figure_title_show=False,  # for press
+                           label_panel_show=True,  # for press
+                           labels_fontweight='bold')
 
-            # Plot 3c acceleration raw waveforms
-            pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
-                                   wf_panel_2_sig=df_skyfall_data[accelerometer_data_raw_label][station][2],
-                                   wf_panel_2_time=df_skyfall_data[accelerometer_epoch_s_label][station],
-                                   wf_panel_1_sig=df_skyfall_data[accelerometer_data_raw_label][station][1],
-                                   wf_panel_1_time=df_skyfall_data[accelerometer_epoch_s_label][station],
-                                   wf_panel_0_sig=df_skyfall_data[accelerometer_data_raw_label][station][0],
-                                   wf_panel_0_time=df_skyfall_data[accelerometer_epoch_s_label][station],
-                                   start_time_epoch=event_reference_time_epoch_s,
-                                   wf_panel_2_units="Acc Z, m/$s^2$",
-                                   wf_panel_1_units="Acc Y, m/$s^2$",
-                                   wf_panel_0_units="Acc X, m/$s^2$",
-                                   figure_title=skyfall_config.event_name + ": Accelerometer raw",
-                                   figure_title_show=False,  # for press
-                                   label_panel_show=True,  # for press
-                                   labels_fontweight='bold')
+    # Plot aligned waveforms for sensor payload (mic, accelerometer, barometer), highpassed
+    pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
+                           wf_panel_2_sig=df_skyfall_data[audio_data_label][0],
+                           wf_panel_2_time=df_skyfall_data[audio_epoch_s_label][0],
+                           wf_panel_1_sig=df_skyfall_data[accelerometer_data_highpass_label][0][2],
+                           wf_panel_1_time=df_skyfall_data[accelerometer_epoch_s_label][0],
+                           wf_panel_0_sig=df_skyfall_data[barometer_data_highpass_label][0][0],
+                           wf_panel_0_time=df_skyfall_data[barometer_epoch_s_label][0],
+                           start_time_epoch=event_reference_time_epoch_s,
+                           wf_panel_2_units="Mic, Norm,",
+                           wf_panel_1_units="Acc Z hp, m/$s^2$",
+                           wf_panel_0_units="Bar hp, kPa",
+                           figure_title=skyfall_config.event_name + " with Acc and Bar Highpass",
+                           figure_title_show=False,
+                           label_panel_show=True,  # for press
+                           labels_fontweight='bold')
 
-        if accelerometer_data_raw_label and barometer_data_raw_label in df_skyfall_data.columns:
-            # Plot aligned waveforms for sensor payload
-            pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
-                                   wf_panel_2_sig=df_skyfall_data[audio_data_label][station],
-                                   wf_panel_2_time=df_skyfall_data[audio_epoch_s_label][station],
-                                   wf_panel_1_sig=df_skyfall_data[accelerometer_data_highpass_label][station][2],
-                                   wf_panel_1_time=df_skyfall_data[accelerometer_epoch_s_label][station],
-                                   wf_panel_0_sig=df_skyfall_data[barometer_data_highpass_label][station][0],
-                                   wf_panel_0_time=df_skyfall_data[barometer_epoch_s_label][station],
-                                   start_time_epoch=event_reference_time_epoch_s,
-                                   wf_panel_2_units="Mic, Norm,",
-                                   wf_panel_1_units="Acc Z hp, m/$s^2$",
-                                   wf_panel_0_units="Bar hp, kPa",
-                                   figure_title=skyfall_config.event_name + " with Acc and Bar Highpass",
-                                   figure_title_show=False,
-                                   label_panel_show=True,  # for press
-                                   labels_fontweight='bold')
+    # Plot aligned waveforms for sensor payload (mic, accelerometer, barometer), raw
+    pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
+                           wf_panel_2_sig=df_skyfall_data[audio_data_label][0],
+                           wf_panel_2_time=df_skyfall_data[audio_epoch_s_label][0],
+                           wf_panel_1_sig=df_skyfall_data[accelerometer_data_raw_label][0][2],
+                           wf_panel_1_time=df_skyfall_data[accelerometer_epoch_s_label][0],
+                           wf_panel_0_sig=baro_height_from_bounder_km,
+                           wf_panel_0_time=df_skyfall_data[barometer_epoch_s_label][0],
+                           start_time_epoch=event_reference_time_epoch_s,
+                           wf_panel_2_units="Mic, Norm",
+                           wf_panel_1_units="Acc Z, m/$s^2$",
+                           wf_panel_0_units="Bar Z Height, km",
+                           figure_title=skyfall_config.event_name,
+                           figure_title_show=False,
+                           label_panel_show=True,  # for press
+                           labels_fontweight='bold')
 
-            pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
-                                   wf_panel_2_sig=df_skyfall_data[audio_data_label][station],
-                                   wf_panel_2_time=df_skyfall_data[audio_epoch_s_label][station],
-                                   wf_panel_1_sig=df_skyfall_data[accelerometer_data_raw_label][station][2],
-                                   wf_panel_1_time=df_skyfall_data[accelerometer_epoch_s_label][station],
-                                   wf_panel_0_sig=baro_height_from_bounder_km,
-                                   wf_panel_0_time=df_skyfall_data[barometer_epoch_s_label][station],
-                                   start_time_epoch=event_reference_time_epoch_s,
-                                   wf_panel_2_units="Mic, Norm",
-                                   wf_panel_1_units="Acc Z, m/$s^2$",
-                                   wf_panel_0_units="Bar Z Height, km",
-                                   figure_title=skyfall_config.event_name,
-                                   figure_title_show=False,
-                                   label_panel_show=True,  # for press
-                                   labels_fontweight='bold')
+    # Gyroscope sensor stats
+    print(f'\ngyroscope_sample_rate_hz: {df_skyfall_data[gyroscope_fs_label][0]}'
+          f'\ngyroscope_epoch_s_0: {df_skyfall_data[gyroscope_epoch_s_label][0][0]}')
 
-        if gyroscope_data_raw_label and gyroscope_fs_label and gyroscope_data_highpass_label \
-                in df_skyfall_data.columns:
+    # Plot X,Y,Z raw gyroscope waveforms
+    pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
+                           wf_panel_2_sig=df_skyfall_data[gyroscope_data_raw_label][0][2],
+                           wf_panel_2_time=df_skyfall_data[gyroscope_epoch_s_label][0],
+                           wf_panel_1_sig=df_skyfall_data[gyroscope_data_raw_label][0][1],
+                           wf_panel_1_time=df_skyfall_data[gyroscope_epoch_s_label][0],
+                           wf_panel_0_sig=df_skyfall_data[gyroscope_data_raw_label][0][0],
+                           wf_panel_0_time=df_skyfall_data[gyroscope_epoch_s_label][0],
+                           start_time_epoch=event_reference_time_epoch_s,
+                           wf_panel_2_units="Gyr Z, rad/s",
+                           wf_panel_1_units="Gyr Y, rad/s",
+                           wf_panel_0_units="Gyr X, rad/s",
+                           figure_title=skyfall_config.event_name + ": Gyroscope raw",
+                           figure_title_show=False,
+                           label_panel_show=True,  # for press
+                           labels_fontweight='bold')
 
-            print('gyroscope_sample_rate_hz:', df_skyfall_data[gyroscope_fs_label][station])
-            print('gyroscope_epoch_s_0:', df_skyfall_data[gyroscope_epoch_s_label][station][0],
-                  df_skyfall_data[gyroscope_epoch_s_label][station][-1])
-            # Plot 3c raw gyroscope waveforms
-            pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
-                                   wf_panel_2_sig=df_skyfall_data[gyroscope_data_raw_label][station][2],
-                                   wf_panel_2_time=df_skyfall_data[gyroscope_epoch_s_label][station],
-                                   wf_panel_1_sig=df_skyfall_data[gyroscope_data_raw_label][station][1],
-                                   wf_panel_1_time=df_skyfall_data[gyroscope_epoch_s_label][station],
-                                   wf_panel_0_sig=df_skyfall_data[gyroscope_data_raw_label][station][0],
-                                   wf_panel_0_time=df_skyfall_data[gyroscope_epoch_s_label][station],
-                                   start_time_epoch=event_reference_time_epoch_s,
-                                   wf_panel_2_units="Gyr Z, rad/s",
-                                   wf_panel_1_units="Gyr Y, rad/s",
-                                   wf_panel_0_units="Gyr X, rad/s",
-                                   figure_title=skyfall_config.event_name + ": Gyroscope raw",
-                                   figure_title_show=False,
-                                   label_panel_show=True,  # for press
-                                   labels_fontweight='bold')
+    # Magnetometer sensor stats
+    print(f'\nmagnetometer_sample_rate_hz: {df_skyfall_data[magnetometer_fs_label][0]}'
+          f'\nmagnetometer_epoch_s_0: {df_skyfall_data[magnetometer_epoch_s_label][0][0]}')
 
-        if magnetometer_data_raw_label and magnetometer_fs_label and magnetometer_data_highpass_label \
-                in df_skyfall_data.columns:
+    # Plot X, Y, Z magnetometer raw waveforms
+    pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
+                           wf_panel_2_sig=df_skyfall_data[magnetometer_data_raw_label][0][2],
+                           wf_panel_2_time=df_skyfall_data[magnetometer_epoch_s_label][0],
+                           wf_panel_1_sig=df_skyfall_data[magnetometer_data_raw_label][0][1],
+                           wf_panel_1_time=df_skyfall_data[magnetometer_epoch_s_label][0],
+                           wf_panel_0_sig=df_skyfall_data[magnetometer_data_raw_label][0][0],
+                           wf_panel_0_time=df_skyfall_data[magnetometer_epoch_s_label][0],
+                           start_time_epoch=event_reference_time_epoch_s,
+                           wf_panel_2_units="Mag Z, $\mu$T",
+                           wf_panel_1_units="Mag Y, $\mu$T",
+                           wf_panel_0_units="Mag X, $\mu$T",
+                           figure_title=skyfall_config.event_name + ": Magnetometer raw",
+                           figure_title_show=False,
+                           label_panel_show=True,  # for press
+                           labels_fontweight='bold')
 
-            print('magnetometer_sample_rate_hz:', df_skyfall_data[magnetometer_fs_label][station])
-            print('magnetometer_epoch_s_0:', df_skyfall_data[magnetometer_epoch_s_label][station][0],
-                  df_skyfall_data[magnetometer_epoch_s_label][station][-1])
-            # Plot 3c magnetometer raw waveforms
-            pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
-                                   wf_panel_2_sig=df_skyfall_data[magnetometer_data_raw_label][station][2],
-                                   wf_panel_2_time=df_skyfall_data[magnetometer_epoch_s_label][station],
-                                   wf_panel_1_sig=df_skyfall_data[magnetometer_data_raw_label][station][1],
-                                   wf_panel_1_time=df_skyfall_data[magnetometer_epoch_s_label][station],
-                                   wf_panel_0_sig=df_skyfall_data[magnetometer_data_raw_label][station][0],
-                                   wf_panel_0_time=df_skyfall_data[magnetometer_epoch_s_label][station],
-                                   start_time_epoch=event_reference_time_epoch_s,
-                                   wf_panel_2_units="Mag Z, $\mu$T",
-                                   wf_panel_1_units="Mag Y, $\mu$T",
-                                   wf_panel_0_units="Mag X, $\mu$T",
-                                   figure_title=skyfall_config.event_name + ": Magnetometer raw",
-                                   figure_title_show=False,
-                                   label_panel_show=True,  # for press
-                                   labels_fontweight='bold')
+    # Bounder location information
+    print(f"\nBounder End EPOCH: {ref_epoch_s}"
+          f"\nBounder End LAT LON ALT: {ref_latitude_deg}, {ref_longitude_deg}, {ref_altitude_m}")
 
-        if location_latitude_label and location_longitude_label and location_altitude_label and location_speed_label \
-                in df_skyfall_data.columns:
+    # Compute ENU projections
+    df_range_z_speed = \
+        rpd_geo.compute_t_r_z_speed(unix_s=df_skyfall_data[location_epoch_s_label][0],
+                                    lat_deg=df_skyfall_data[location_latitude_label][0],
+                                    lon_deg=df_skyfall_data[location_longitude_label][0],
+                                    alt_m=df_skyfall_data[location_altitude_label][0],
+                                    ref_unix_s=ref_epoch_s,
+                                    ref_lat_deg=ref_latitude_deg,
+                                    ref_lon_deg=ref_longitude_deg,
+                                    ref_alt_m=ref_altitude_m)
 
-            print("Bounder End EPOCH:", ref_epoch_s)
-            print("Bounder End LAT LON ALT:", ref_latitude_deg, ref_longitude_deg, ref_altitude_m)
+    # Plot location framework
+    pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
+                           wf_panel_2_sig=df_range_z_speed['Range_m']*METERS_TO_KM,
+                           wf_panel_2_time=df_skyfall_data[location_epoch_s_label][0],
+                           wf_panel_1_sig=df_range_z_speed['Z_m']*METERS_TO_KM,
+                           wf_panel_1_time=df_skyfall_data[location_epoch_s_label][0],
+                           wf_panel_0_sig=df_skyfall_data[location_speed_label][0],
+                           wf_panel_0_time=df_skyfall_data[location_epoch_s_label][0],
+                           start_time_epoch=event_reference_time_epoch_s,
+                           wf_panel_2_units="Range, km",
+                           wf_panel_1_units="Altitude, km",
+                           wf_panel_0_units="Speed, m/s",
+                           figure_title=skyfall_config.event_name + ": Location Framework",
+                           figure_title_show=False,
+                           label_panel_show=True,  # for press
+                           labels_fontweight='bold')
 
-            # Compute ENU projections
-            df_range_z_speed = \
-                rpd_geo.compute_t_r_z_speed(unix_s=df_skyfall_data[location_epoch_s_label][station],
-                                            lat_deg=df_skyfall_data[location_latitude_label][station],
-                                            lon_deg=df_skyfall_data[location_longitude_label][station],
-                                            alt_m=df_skyfall_data[location_altitude_label][station],
-                                            ref_unix_s=ref_epoch_s,
-                                            ref_lat_deg=ref_latitude_deg,
-                                            ref_lon_deg=ref_longitude_deg,
-                                            ref_alt_m=ref_altitude_m)
+    # Plot bounder height and smartphone height calculated from pressure sensor earlier
+    plt.figure()
+    time_bar = df_skyfall_data[barometer_epoch_s_label][0] - skyfall_config.event_start_epoch_s
+    time_loc = df_skyfall_data[location_epoch_s_label][0] - skyfall_config.event_start_epoch_s
 
-            # Plot location framework
-            pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
-                                   wf_panel_2_sig=df_range_z_speed['Range_m']*METERS_TO_KM,
-                                   wf_panel_2_time=df_skyfall_data[location_epoch_s_label][station],
-                                   wf_panel_1_sig=df_range_z_speed['Z_m']*METERS_TO_KM,
-                                   wf_panel_1_time=df_skyfall_data[location_epoch_s_label][station],
-                                   wf_panel_0_sig=df_skyfall_data[location_speed_label][station],
-                                   wf_panel_0_time=df_skyfall_data[location_epoch_s_label][station],
-                                   start_time_epoch=event_reference_time_epoch_s,
-                                   wf_panel_2_units="Range, km",
-                                   wf_panel_1_units="Altitude, km",
-                                   wf_panel_0_units="Speed, m/s",
-                                   figure_title=skyfall_config.event_name + ": Location Framework",
-                                   figure_title_show=False,
-                                   label_panel_show=True,  # for press
-                                   labels_fontweight='bold')
+    ax1 = plt.subplot(211)
+    plt.semilogy(time_bar, df_skyfall_data[barometer_data_raw_label][0][0], 'midnightblue',
+                 label='Barometer kPa')
+    plt.ylabel('Pressure, kPa')
+    plt.legend(loc='lower right')
+    plt.xlim([0, 1800])
+    plt.text(0.01, 0.9, "(b)", transform=ax1.transAxes,  fontweight='bold')
+    ax1.set_xticklabels([])
+    plt.grid(True)
 
-            if location_epoch_s_label and location_altitude_label and barometer_epoch_s_label and \
-                    barometer_data_raw_label in df_skyfall_data.columns:
+    ax2 = plt.subplot(212)
+    plt.plot(time_loc, df_skyfall_data[location_altitude_label][0] * METERS_TO_KM, 'r',
+             label='Location sensor')
+    plt.plot(time_bar, barometer_height_m * METERS_TO_KM, 'midnightblue', label='Barometer Z')
+    plt.ylabel('Height, km')
+    plt.xlabel(f"Time (s) from UTC "
+               f"{dtime.datetime.utcfromtimestamp(skyfall_config.event_start_epoch_s).strftime('%Y-%m-%d %H:%M:%S')}")
+    plt.legend(loc='upper right')
+    plt.xlim([0, 1800])
+    plt.text(0.01, 0.05, "(a)", transform=ax2.transAxes,  fontweight='bold')
+    plt.grid(True)
+    plt.tight_layout()
 
-                plt.figure()
-                time_bar = df_skyfall_data[barometer_epoch_s_label][station] - skyfall_config.event_start_epoch_s
-                time_loc = df_skyfall_data[location_epoch_s_label][station] - skyfall_config.event_start_epoch_s
+    # Location sensor stats
+    print(f"\nlocation_provider_epoch_s_0: {df_skyfall_data[location_provider_label][0][0]}",
+          f"\nlocation_provider_epoch_s_end: {df_skyfall_data[location_provider_label][0][-1]}")
+    # Network sensor stats
+    print(f"\nnetwork_type_epoch_s_0: {df_skyfall_data[health_network_type_label][0][0]}",
+          f"\nnetwork_type_epoch_s_end: {df_skyfall_data[health_network_type_label][0][-1]}")
 
-                ax1 = plt.subplot(211)
-                plt.semilogy(time_bar, df_skyfall_data[barometer_data_raw_label][station][0], 'midnightblue',
-                             label='Barometer kPa')
-                plt.ylabel('Pressure, kPa')
-                plt.legend(loc='lower right')
-                plt.xlim([0, 1800])
-                plt.text(0.01, 0.9, "(b)", transform=ax1.transAxes,  fontweight='bold')
-                ax1.set_xticklabels([])
-                plt.grid(True)
+    # Other interesting fields: Estimated Height ASL, Internal Temp, % Battery
+    pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
+                           wf_panel_2_sig=barometer_height_m,
+                           wf_panel_2_time=df_skyfall_data[barometer_epoch_s_label][0],
+                           wf_panel_1_sig=df_skyfall_data[health_internal_temp_deg_C_label][0],
+                           wf_panel_1_time=df_skyfall_data[health_epoch_s_label][0],
+                           wf_panel_0_sig=df_skyfall_data[health_battery_charge_label][0],
+                           wf_panel_0_time=df_skyfall_data[health_epoch_s_label][0],
+                           start_time_epoch=event_reference_time_epoch_s,
+                           wf_panel_2_units="Bar Z Height, m",
+                           wf_panel_1_units="Temp, $^oC$",
+                           wf_panel_0_units="Battery %",
+                           figure_title=skyfall_config.event_name + ": Station Status",
+                           figure_title_show=False,
+                           label_panel_show=True,  # for press
+                           labels_fontweight='bold')
 
-                ax2=plt.subplot(212)
-                plt.plot(time_loc, df_skyfall_data[location_altitude_label][station] * METERS_TO_KM, 'r',
-                         label='Location sensor')
-                plt.plot(time_bar, barometer_height_m * METERS_TO_KM, 'midnightblue', label='Barometer Z')
-                plt.ylabel('Height, km')
-                plt.xlabel(f"Time (s) from UTC "
-                           f"{dtime.datetime.utcfromtimestamp(skyfall_config.event_start_epoch_s).strftime('%Y-%m-%d %H:%M:%S')}")
-                plt.legend(loc='upper right')
-                plt.xlim([0, 1800])
-                plt.text(0.01, 0.05, "(a)", transform=ax2.transAxes,  fontweight='bold')
-                plt.grid(True)
-                plt.tight_layout()
+    # Plot synchronization framework
+    pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
+                           wf_panel_2_sig=df_skyfall_data[synchronization_latency_label][0],
+                           wf_panel_2_time=df_skyfall_data[synchronization_epoch_label][0],
+                           wf_panel_1_sig=df_skyfall_data[synchronization_offset_label][0],
+                           wf_panel_1_time=df_skyfall_data[synchronization_epoch_label][0],
+                           wf_panel_0_sig=df_skyfall_data[synchronization_offset_delta_label][0],
+                           wf_panel_0_time=df_skyfall_data[synchronization_epoch_label][0],
+                           start_time_epoch=event_reference_time_epoch_s,
+                           wf_panel_2_units="Latency, ms",
+                           wf_panel_1_units="Offset, s",
+                           wf_panel_0_units="Offset delta, s",
+                           figure_title=skyfall_config.event_name + ": Synchronization Framework",
+                           figure_title_show=False,
+                           label_panel_show=True,  # for press
+                           labels_fontweight='bold')
 
-        if health_battery_charge_label and health_internal_temp_deg_C_label and health_network_type_label \
-                and barometer_data_raw_label and location_provider_label in df_skyfall_data.columns:
+    # Plot synchronization framework with location altitude
+    pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
+                           wf_panel_2_sig=df_skyfall_data[synchronization_latency_label][0],
+                           wf_panel_2_time=df_skyfall_data[synchronization_epoch_label][0],
+                           wf_panel_1_sig=df_skyfall_data[synchronization_offset_label][0],
+                           wf_panel_1_time=df_skyfall_data[synchronization_epoch_label][0],
+                           wf_panel_0_sig=df_skyfall_data[location_altitude_label][0] * METERS_TO_KM,
+                           wf_panel_0_time=df_skyfall_data[location_epoch_s_label][0],
+                           start_time_epoch=event_reference_time_epoch_s,
+                           wf_panel_2_units="Latency, ms",
+                           wf_panel_1_units="Offset, s",
+                           wf_panel_0_units="Height, km",
+                           figure_title=skyfall_config.event_name + ": Synchronization Framework",
+                           figure_title_show=False,
+                           label_panel_show=True,  # for press
+                           labels_fontweight='bold')
 
-            print(f"location_provider_epoch_s_0: {df_skyfall_data[location_provider_label][station][0]}",
-                  f", location_provider_epoch_s_end: {df_skyfall_data[location_provider_label][station][-1]}")
-            print(f"network_type_epoch_s_0: {df_skyfall_data[health_network_type_label][station][0]}",
-                  f", network_type_epoch_s_end: {df_skyfall_data[health_network_type_label][station][-1]}")
+    # Stage sensor wiggles plot
+    sensor_column_label_list = [audio_data_label, barometer_data_highpass_label,
+                                accelerometer_data_highpass_label, gyroscope_data_highpass_label,
+                                magnetometer_data_highpass_label]
 
-            # Other interesting fields: Estimated Height ASL, Internal Temp, % Battery
-            pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
-                                   wf_panel_2_sig=barometer_height_m,
-                                   wf_panel_2_time=df_skyfall_data[barometer_epoch_s_label][station],
-                                   wf_panel_1_sig=df_skyfall_data[health_internal_temp_deg_C_label][station],
-                                   wf_panel_1_time=df_skyfall_data[health_epoch_s_label][station],
-                                   wf_panel_0_sig=df_skyfall_data[health_battery_charge_label][station],
-                                   wf_panel_0_time=df_skyfall_data[health_epoch_s_label][station],
-                                   start_time_epoch=event_reference_time_epoch_s,
-                                   wf_panel_2_units="Bar Z Height, m",
-                                   wf_panel_1_units="Temp, $^oC$",
-                                   wf_panel_0_units="Battery %",
-                                   figure_title=skyfall_config.event_name + ": Station Status",
-                                   figure_title_show=False,
-                                   label_panel_show=True,  # for press
-                                   labels_fontweight='bold')
+    sensor_epoch_column_label_list = [audio_epoch_s_label, barometer_epoch_s_label,
+                                      accelerometer_epoch_s_label, gyroscope_epoch_s_label,
+                                      magnetometer_epoch_s_label]
+    # Plot sensor wiggles
+    rpd_plot.plot_wiggles_pandas(df=df_skyfall_data,
+                                 sig_wf_label=sensor_column_label_list,
+                                 sig_timestamps_label=sensor_epoch_column_label_list,
+                                 sig_id_label='station_id',
+                                 station_id_str='1637610021',
+                                 fig_title_show=True,
+                                 fig_title='sensor waveforms',
+                                 show_figure=True)
 
-        if synchronization_epoch_label and synchronization_latency_label and synchronization_offset_label \
-                and synchronization_best_offset_label and synchronization_offset_delta_label and \
-                synchronization_number_exchanges_label in df_skyfall_data.columns:
-
-            # Plot synchronization framework
-            pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
-                                   wf_panel_2_sig=df_skyfall_data[synchronization_latency_label][station],
-                                   wf_panel_2_time=df_skyfall_data[synchronization_epoch_label][station],
-                                   wf_panel_1_sig=df_skyfall_data[synchronization_offset_label][station],
-                                   wf_panel_1_time=df_skyfall_data[synchronization_epoch_label][station],
-                                   wf_panel_0_sig=df_skyfall_data[synchronization_offset_delta_label][station],
-                                   wf_panel_0_time=df_skyfall_data[synchronization_epoch_label][station],
-                                   start_time_epoch=event_reference_time_epoch_s,
-                                   wf_panel_2_units="Latency, ms",
-                                   wf_panel_1_units="Offset, s",
-                                   wf_panel_0_units="Offset delta, s",
-                                   figure_title=skyfall_config.event_name + ": Synchronization Framework",
-                                   figure_title_show=False,
-                                   label_panel_show=True,  # for press
-                                   labels_fontweight='bold')
-
-            # Plot synchronization framework
-            pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
-                                   wf_panel_2_sig=df_skyfall_data[synchronization_latency_label][station],
-                                   wf_panel_2_time=df_skyfall_data[synchronization_epoch_label][station],
-                                   wf_panel_1_sig=df_skyfall_data[synchronization_offset_label][station],
-                                   wf_panel_1_time=df_skyfall_data[synchronization_epoch_label][station],
-                                   wf_panel_0_sig=df_skyfall_data[location_altitude_label][station] * METERS_TO_KM,
-                                   wf_panel_0_time=df_skyfall_data[location_epoch_s_label][station],
-                                   start_time_epoch=event_reference_time_epoch_s,
-                                   wf_panel_2_units="Latency, ms",
-                                   wf_panel_1_units="Offset, s",
-                                   wf_panel_0_units="Height, km",
-                                   figure_title=skyfall_config.event_name + ": Synchronization Framework",
-                                   figure_title_show=False,
-                                   label_panel_show=True,  # for press
-                                   labels_fontweight='bold')
-
-        # Plot sensor wiggles
-        sensor_column_label_list = [audio_data_label, barometer_data_highpass_label,
-                                    accelerometer_data_highpass_label, gyroscope_data_highpass_label,
-                                    magnetometer_data_highpass_label]
-
-        sensor_epoch_column_label_list = [audio_epoch_s_label, barometer_epoch_s_label,
-                                          accelerometer_epoch_s_label, gyroscope_epoch_s_label,
-                                          magnetometer_epoch_s_label]
-
-        print("Wiggle pandas ...")
-        print('Sensor labels: ', sensor_column_label_list)
-        print('Sensor epochs: ', sensor_epoch_column_label_list)
-
-        rpd_plot.plot_wiggles_pandas(df=df_skyfall_data,
-                                     sig_wf_label=sensor_column_label_list,
-                                     sig_timestamps_label=sensor_epoch_column_label_list,
-                                     sig_id_label='station_id',
-                                     station_id_str='1637610021',
-                                     fig_title_show=True,
-                                     fig_title='sensor waveforms',
-                                     show_figure=True)
-
-        plt.show()
+    plt.show()
 
 
 if __name__ == "__main__":
