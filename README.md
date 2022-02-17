@@ -28,7 +28,7 @@ git clone git@github.com:RedVoxInc/Skyfall.git
 ```
 For more details, please check: [Instructions on how to clone a GitHub repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository#cloning-a-repository).
 
-#### 2.2. Requirements
+#### 2.2. Install requirements
 
 To install the necessary requirements:
 ```shell
