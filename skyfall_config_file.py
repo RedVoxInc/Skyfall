@@ -24,7 +24,7 @@ ref_epoch_s = 1603808160
 # Redpd Configuration
 skyfall_config = RedpdConfig(input_directory=SKYFALL_DIR,
                              event_name="Skyfall",
-                             output_directory=os.path.join(SKYFALL_DIR, "rpd_files"),
+                             # output_directory=os.path.join(SKYFALL_DIR, "rpd_files"),
                              station_ids=["1637610021"],
                              sensor_labels=['audio', 'barometer', 'accelerometer', 'magnetometer', 'gyroscope',
                                             'health', 'location', 'clock', 'synchronization'],
