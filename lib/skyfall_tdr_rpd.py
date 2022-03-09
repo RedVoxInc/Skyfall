@@ -2,6 +2,7 @@
 # Python libraries
 import matplotlib.pyplot as plt
 import datetime as dtime
+import numpy as np
 
 # RedVox RedPandas and related RedVox modules
 import redpandas.redpd_preprocess as rpd_prep
@@ -107,10 +108,10 @@ def main():
           f'\nbarometer_epoch_s_0: {df_skyfall_data[barometer_epoch_s_label][0][0]}')
 
     # Calculate height of phone in balloon from pressure sensor
-    barometer_height_m = \
-        rpd_geo.bounder_model_height_from_pressure(df_skyfall_data[barometer_data_raw_label][0][0])
+    barometer_height_km = \
+        rpd_geo.bounder_model_height_from_pressure(df_skyfall_data[barometer_data_raw_label][0][0])*METERS_TO_KM
 
-    baro_height_from_bounder_km = barometer_height_m*METERS_TO_KM  # now in km
+    baro_height_from_bounder_km = barometer_height_km  # now in km
 
     # Acceleration sensor stats
     print(f'\naccelerometer_sample_rate_hz: {df_skyfall_data[accelerometer_fs_label][0]}'
@@ -259,7 +260,7 @@ def main():
     ax2 = plt.subplot(212)
     plt.plot(time_loc, df_skyfall_data[location_altitude_label][0] * METERS_TO_KM, 'r',
              label='Location sensor')
-    plt.plot(time_bar, barometer_height_m * METERS_TO_KM, 'midnightblue', label='Barometer Z')
+    plt.plot(time_bar, barometer_height_km, 'midnightblue', label='Barometer Z')
     plt.ylabel('Height, km')
     plt.xlabel(f"Time (s) from UTC "
                f"{dtime.datetime.utcfromtimestamp(skyfall_config.event_start_epoch_s).strftime('%Y-%m-%d %H:%M:%S')}")
@@ -278,14 +279,14 @@ def main():
 
     # Other interesting fields: Estimated Height ASL, Internal Temp, % Battery
     pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
-                           wf_panel_2_sig=barometer_height_m,
+                           wf_panel_2_sig=barometer_height_km,
                            wf_panel_2_time=df_skyfall_data[barometer_epoch_s_label][0],
                            wf_panel_1_sig=df_skyfall_data[health_internal_temp_deg_C_label][0],
                            wf_panel_1_time=df_skyfall_data[health_epoch_s_label][0],
                            wf_panel_0_sig=df_skyfall_data[health_battery_charge_label][0],
                            wf_panel_0_time=df_skyfall_data[health_epoch_s_label][0],
                            start_time_epoch=event_reference_time_epoch_s,
-                           wf_panel_2_units="Bar Z Height, m",
+                           wf_panel_2_units="Bar Z Height, km",
                            wf_panel_1_units="Temp, $^oC$",
                            wf_panel_0_units="Battery %",
                            figure_title=skyfall_config.event_name + ": Station Status",
@@ -310,12 +311,25 @@ def main():
                            label_panel_show=True,  # for press
                            labels_fontweight='bold')
 
+    # Tidy up plot
+    latency = np.insert(df_skyfall_data[synchronization_latency_label][0], 11, np.nan)
+    timestamps_latency = np.insert(df_skyfall_data[synchronization_epoch_label][0], 11,
+                                   (df_skyfall_data[synchronization_epoch_label][0][10]+5))
+    offset = np.insert(df_skyfall_data[synchronization_offset_label][0], 11, np.nan)
+    timestamps_offset = np.insert(df_skyfall_data[synchronization_epoch_label][0], 11,
+                                  (df_skyfall_data[synchronization_epoch_label][0][10]+5))
+
+    timestamps_latency = np.concatenate([[df_skyfall_data[location_epoch_s_label][0][0]], timestamps_latency])
+    timestamps_offset = np.concatenate([[df_skyfall_data[location_epoch_s_label][0][0]], timestamps_offset])
+    latency = np.concatenate([[np.nan], latency])
+    offset = np.concatenate([[np.nan], offset])
+
     # Plot synchronization framework with location altitude
     pnl.plot_wf_wf_wf_vert(redvox_id=station_id_str,
-                           wf_panel_2_sig=df_skyfall_data[synchronization_latency_label][0],
-                           wf_panel_2_time=df_skyfall_data[synchronization_epoch_label][0],
-                           wf_panel_1_sig=df_skyfall_data[synchronization_offset_label][0],
-                           wf_panel_1_time=df_skyfall_data[synchronization_epoch_label][0],
+                           wf_panel_2_sig=latency,
+                           wf_panel_2_time=timestamps_latency,
+                           wf_panel_1_sig=offset,
+                           wf_panel_1_time=timestamps_offset,
                            wf_panel_0_sig=df_skyfall_data[location_altitude_label][0] * METERS_TO_KM,
                            wf_panel_0_time=df_skyfall_data[location_epoch_s_label][0],
                            start_time_epoch=event_reference_time_epoch_s,
