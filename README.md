@@ -64,4 +64,5 @@ Please feel free to submit issues and bugs on the GitHub [issue tracker](https:/
 You will mainly need the [RedVox SDK](https://github.com/RedVoxInc/redvox-python-sdk#redvox-python-sdk) (redvox >=3.1.7), 
 [RedPandas](https://github.com/RedVoxInc/redpandas#redpandas) (redpandas >= 1.3.3),
 and [Libquantum](https://github.com/RedVoxInc/libquantum#libquantum) (libquantum >= 1.3.0) libraries.
+
 The SDK should install the required numpy and matplotlib versions.
