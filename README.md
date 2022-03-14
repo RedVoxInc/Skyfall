@@ -6,7 +6,7 @@ with the [RedVox Infrasound Recorder app](https://www.redvoxsound.com).
 
 In essence, Skyfall is an event where a smartphone fell from a high altitude and landed on the ground. A balloon hoisted a commercial, off-the-shelf, smartphone to a height of 36 km (around 119,000 feet) and purposely burst
 to let the smartphone freefall (hence the name _Skyfall_). As the smartphone fell back to Earth, it recorded its 30 minute 
-descent using the [RedVox Infrasound Recorder](https://www.redvoxsound.com/) app. 
+descent using the app. 
 
 Using the data from this event, RedPandas is able to produce several products.
 
@@ -61,6 +61,8 @@ Please feel free to submit issues and bugs on the GitHub [issue tracker](https:/
 
 ## Dependecies
 
-You will mainly need the [RedVox SDK](https://github.com/RedVoxInc/redvox-python-sdk#redvox-python-sdk) (redvox >=3.1.0), 
-[RedPandas](https://github.com/RedVoxInc/redpandas#redpandas) (redpandas >= 1.3.3)
+You will mainly need the [RedVox SDK](https://github.com/RedVoxInc/redvox-python-sdk#redvox-python-sdk) (redvox >=3.1.7), 
+[RedPandas](https://github.com/RedVoxInc/redpandas#redpandas) (redpandas >= 1.3.3),
 and [Libquantum](https://github.com/RedVoxInc/libquantum#libquantum) (libquantum >= 1.3.0) libraries.
+
+The SDK should install the required numpy and matplotlib versions.

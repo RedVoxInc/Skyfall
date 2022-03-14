@@ -1,5 +1,5 @@
 # Requirements for Skyfall
-redvox[full] >= 3.1.0
+redvox[full] >= 3.1.7
 libquantum >= 1.3.0
 redvox-pandas >= 1.3.3
 
