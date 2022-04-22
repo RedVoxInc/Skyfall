@@ -6,7 +6,8 @@ with the [RedVox Infrasound Recorder app](https://www.redvoxsound.com).
 
 In essence, Skyfall is an event where a smartphone fell from a high altitude and landed on the ground. A balloon hoisted a commercial, off-the-shelf, smartphone to a height of 36 km (around 119,000 feet) and purposely burst
 to let the smartphone freefall (hence the name _Skyfall_). As the smartphone fell back to Earth, it recorded its 30 minute 
-descent using the app. 
+descent using the app. You can read more about this projects 
+in [Skyfall: Signal Fusion from a Smartphone Falling from the Stratosphere](https://www.mdpi.com/2624-6120/3/2/14).
 
 Using the data from this event, RedPandas is able to produce several products.
 
@@ -15,7 +16,7 @@ Using the data from this event, RedPandas is able to produce several products.
 
 ### 1. Download the RedVox Skyfall data
 To begin, download the Skyfall dataset from [the Redvox website](https://redvox.io/#/reports/3f3f). Next to "Additional Products", you will
-find a link to download the data. A zip file will start to download.
+find a link to download the data. Click over _API 900 Data Distribution_. A zip file will start to download.
 
 Visit [RedVox](https://www.redvoxsound.com/) for more information on infrasound collection with a smartphone.
 
