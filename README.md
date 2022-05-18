@@ -1,4 +1,7 @@
 # Skyfall
+
+Check out the [Skyfall Docs](https://redvoxinc.github.io/Skyfall/html/index.html) for more guidance on how to run the Skyfall code. 
+
 ## Description
 
 The Skyfall data is a high-quality dataset that showcases the RedPandas library for processing smartphone data collected 
