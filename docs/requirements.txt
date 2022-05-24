@@ -1,0 +1,2 @@
+# theme for sphinx
+furo
