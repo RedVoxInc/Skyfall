@@ -3,7 +3,7 @@ name: "Pull Request Docs Check"
 on:
   push:
     paths:
-      - 'source/**'
+      - 'docs/**'
 
 jobs:
   docs:
