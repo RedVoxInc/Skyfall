@@ -1,10 +1,9 @@
 name: "Pull Request Docs Check"
 
-on:
-- pull_request
+on: [pull_request]
 
 jobs:
-  docs:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -14,7 +13,7 @@ jobs:
       - uses: ammaraskar/sphinx-action@master
         with:
           build-command: "sphinx-build -b html . _build"
-          docs-folder: "docs/"
+          docs-folder: "docs2/"
 #      - uses: actions/upload-artifact@v1
 #        with:
 #          name: DocumentationHTML
