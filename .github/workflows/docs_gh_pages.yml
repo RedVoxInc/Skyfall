@@ -19,7 +19,7 @@ jobs:
       - uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "docs/"
-          build-command: "sphinx-build -b html docs/source/ docs/build/html"
+          build-command: "sphinx-build -b html source/ build/html"
       # Create an artifact of the html output.
       - uses: actions/upload-artifact@v1
         with:
