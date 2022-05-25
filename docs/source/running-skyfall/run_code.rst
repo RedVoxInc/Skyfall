@@ -6,7 +6,7 @@ Now that all the set-up is complete, you are ready to run the Skyfall example!
 Introduction: skyfall_intro.py
 -------------------------------
 
-Run the file ``skyfall_intro.py`` (view in `Github <https://github.com/RedVoxInc/Skyfall/blob/main/skyfall_intro.py>`_).
+Run the file ``skyfall_intro.py`` (view in `code in Github <https://github.com/RedVoxInc/Skyfall/blob/main/skyfall_intro.py>`_).
 
 ``skyfall_intro.py`` extracts the API 900 RedVox data and plots Time-Domain Representation of the different sensors
 available as the phone descended from the Stratosphere. A graph plotted in ``skyfall_intro.py`` is shown below.
