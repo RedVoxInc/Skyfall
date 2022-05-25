@@ -1,2 +1,2 @@
-# theme for sphinx, can be installed with pip install furo too
+# for docs
 furo
