@@ -1,7 +1,7 @@
 name: "Push Docs to gh-pages"
 
-on:
-  - push
+on: [push]
+#  - push
 #    paths:
 #      - 'docs/**'
 
