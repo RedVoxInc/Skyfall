@@ -1,9 +1,9 @@
 name: "Push Docs to gh-pages"
 
 on:
-  push:
-    paths:
-      - 'docs/**'
+  - push
+#    paths:
+#      - 'docs/**'
 
 jobs:
   build:
