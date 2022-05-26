@@ -20,7 +20,7 @@ jobs:
         with:
           docs-folder: "docs/"
           build-command: "sphinx-build -b html source/ build/html -w /tmp/sphinx-log"
-      # Create an artifact of the html output.
+      # Create an artifact of the html output .
       - uses: actions/upload-artifact@v1
         with:
           name: DocumentationHTML
