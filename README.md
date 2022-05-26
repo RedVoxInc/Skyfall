@@ -1,6 +1,6 @@
 # Skyfall
 
-Check out the [Skyfall Docs](https://redvoxinc.github.io/Skyfall/html/index.html) for more guidance on how to run the Skyfall code. 
+Check out the [Skyfall Docs](https://redvoxinc.github.io/Skyfall/) for more guidance on how to run the Skyfall code. 
 
 ## Description
 

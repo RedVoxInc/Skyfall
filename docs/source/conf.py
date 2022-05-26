@@ -61,6 +61,8 @@ exclude_patterns = []
 html_theme = 'furo'
 html_title = "Skyfall"
 
+html_favicon = '../img/favicon.ico'
+
 html_theme_options: Dict[str, Any] = {
     "footer_icons": [
         {
