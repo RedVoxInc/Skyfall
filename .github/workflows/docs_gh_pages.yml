@@ -39,11 +39,10 @@ jobs:
           git commit -m "Update documentation" -a || true
           # The above command will fail if no changes were present, so we ignore
           # that.
+      - name: Git pull
+        uses: git pull
       - name: Push changes
-#        uses: ad-m/github-push-action@master
-        run: |
-          git pull
-          ad-m/github-push-action@master
+        uses: ad-m/github-push-action@master
         with:
           branch: gh-pages
           directory: gh-pages
