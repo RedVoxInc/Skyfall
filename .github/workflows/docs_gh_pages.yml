@@ -40,7 +40,8 @@ jobs:
           # The above command will fail if no changes were present, so we ignore
           # that.
       - name: Git pull
-        run: git pull
+        run: git pull origin gh-pages
+
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
