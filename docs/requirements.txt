@@ -1,2 +1,2 @@
-# for docs
+# for sphinx docs, required by github action in workflow
 furo
